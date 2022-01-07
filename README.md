@@ -1,3 +1,7 @@
+#### UPDATE: Code changed to support windows. For linux check official repo.
+
+<hr>
+
 # DECA: Detailed Expression Capture and Animation (SIGGRAPH2021)
 
 <p align="center"> 
@@ -43,7 +47,31 @@ Clone the repo:
     b. download [DECA trained model](https://drive.google.com/file/d/1rp8kdyLPvErw2dTmqtjISRVvQLj6Yzje/view?usp=sharing), and put it in ./data (**no unzip required**)  
     c. (Optional) follow the instructions for the [Albedo model](https://github.com/TimoBolkart/BFM_to_FLAME) to get 'FLAME_albedo_from_BFM.npz', put it into ./data
 
-2. Run demos  
+2. The demo code will try to download, `s3fd-619a316812.pth` and `2DFAN4-cd938726ad.zip` in users `.cache/torch/hub/checkpoints` folder. It may fail but they can be manually downloaded and put into folder.
+  
+3. In `utils/renderer.py` these lines must be placed,
+  
+```
+# Use JIT Compiling Extensions
+# ref: https://pytorch.org/tutorials/advanced/cpp_extension.html
+#from torch.utils.cpp_extension import load, CUDA_HOME
+#curr_dir = os.path.dirname(__file__)
+#standard_rasterize_cuda = \
+#    load(name='standard_rasterize_cuda', 
+#        sources=[f'{curr_dir}/rasterizer/standard_rasterize_cuda.cpp', f'{curr_dir}/rasterizer/standard_rasterize_cuda_kernel.cu'], 
+#        #extra_cuda_cflags = ['-std=c++14', '-ccbin=$$(which gcc-7)']) # cuda10.2 is not compatible with gcc9. Specify gcc 7 
+#        extra_cuda_cflags = ['-std=c++14', '-ccbin=cl.exe']) # cuda10.2 is not compatible with gcc9. Specify gcc 7 
+#from standard_rasterize_cuda import standard_rasterize
+
+# If JIT does not work, try manually installation first
+# 1. see instruction here: pixielib/utils/rasterizer/INSTALL.md
+# 2. add this: "from .rasterizer.standard_rasterize_cuda import standard_rasterize" here
+from .rasterizer.standard_rasterize_cuda import standard_rasterize
+```
+  
+4. Following [INSTALL.md](https://github.com/YadiraF/DECA/blob/master/decalib/utils/rasterizer/INSTALL.md) `standard_rasterize_cuda.*.pyd` must be generated.
+  
+5. Run demos  
     a. **reconstruction**  
     ```bash
     python demos/demo_reconstruct.py -i TestSamples/examples --saveDepth True --saveObj True
