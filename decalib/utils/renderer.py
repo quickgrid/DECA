@@ -31,18 +31,22 @@ def set_rasterizer(type = 'pytorch3d'):
         global standard_rasterize, load_obj
         import os
         from .util import load_obj
+        
         # Use JIT Compiling Extensions
         # ref: https://pytorch.org/tutorials/advanced/cpp_extension.html
-        from torch.utils.cpp_extension import load, CUDA_HOME
-        curr_dir = os.path.dirname(__file__)
-        standard_rasterize_cuda = \
-            load(name='standard_rasterize_cuda', 
-                sources=[f'{curr_dir}/rasterizer/standard_rasterize_cuda.cpp', f'{curr_dir}/rasterizer/standard_rasterize_cuda_kernel.cu'], 
-                extra_cuda_cflags = ['-std=c++14', '-ccbin=$$(which gcc-7)']) # cuda10.2 is not compatible with gcc9. Specify gcc 7 
-        from standard_rasterize_cuda import standard_rasterize
+        #from torch.utils.cpp_extension import load, CUDA_HOME
+        #curr_dir = os.path.dirname(__file__)
+        #standard_rasterize_cuda = \
+        #    load(name='standard_rasterize_cuda', 
+        #        sources=[f'{curr_dir}/rasterizer/standard_rasterize_cuda.cpp', f'{curr_dir}/rasterizer/standard_rasterize_cuda_kernel.cu'], 
+        #        #extra_cuda_cflags = ['-std=c++14', '-ccbin=$$(which gcc-7)']) # cuda10.2 is not compatible with gcc9. Specify gcc 7 
+        #        extra_cuda_cflags = ['-std=c++14', '-ccbin=cl.exe']) # cuda10.2 is not compatible with gcc9. Specify gcc 7 
+        #from standard_rasterize_cuda import standard_rasterize
+        
         # If JIT does not work, try manually installation first
         # 1. see instruction here: pixielib/utils/rasterizer/INSTALL.md
         # 2. add this: "from .rasterizer.standard_rasterize_cuda import standard_rasterize" here
+        from .rasterizer.standard_rasterize_cuda import standard_rasterize
 
 class StandardRasterizer(nn.Module):
     """ Alg: https://www.scratchapixel.com/lessons/3d-basic-rendering/rasterization-practical-implementation
@@ -171,6 +175,7 @@ class Pytorch3dRasterizer(nn.Module):
 
 class SRenderY(nn.Module):
     def __init__(self, image_size, obj_filename, uv_size=256, rasterizer_type='pytorch3d'):
+    #def __init__(self, image_size, obj_filename, uv_size=256, rasterizer_type='standard'):
         super(SRenderY, self).__init__()
         self.image_size = image_size
         self.uv_size = uv_size
